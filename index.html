@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#10152d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Color Clash: Quick Card Battle</title>
+<script src="https://www.youtube.com/game_api/v1"></script>
+<style>
+:root{--bg:#10152d;--panel:#1a2142;--ink:#f8f9ff;--muted:#aeb8db;--yellow:#ffd84d;--red:#ff5964;--blue:#4b8dff;--green:#38d996;--purple:#9b72ff;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{min-height:100%;min-height:100dvh;background:var(--bg);overscroll-behavior:none;overflow-x:hidden}
+body{margin:0;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -10%,#354078 0,transparent 45%),linear-gradient(160deg,#11162e,#0b1023 80%);min-height:100vh;min-height:100dvh;overscroll-behavior:none;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.app{max-width:1120px;margin:auto;padding:20px 20px 28px;padding-top:calc(20px + var(--safe-top));padding-bottom:calc(28px + var(--safe-bottom));padding-left:calc(20px + var(--safe-left));padding-right:calc(20px + var(--safe-right))}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:45px;height:45px;border-radius:15px;background:conic-gradient(from 30deg,var(--yellow),var(--red),var(--blue),var(--green),var(--yellow));box-shadow:0 6px 24px #0005;position:relative;transform:rotate(-8deg);flex-shrink:0}.brand-mark:after{content:"CC";position:absolute;inset:6px;border-radius:11px;background:#151b38;display:grid;place-items:center;font-weight:1000;font-size:13px;transform:rotate(8deg)}h1{font-size:clamp(18px,3vw,28px);margin:0;letter-spacing:-.7px}.subtitle{font-size:12px;color:var(--muted);margin-top:3px}.pill{border:1px solid #ffffff20;background:#ffffff0b;padding:9px 13px;border-radius:999px;font-size:12px;color:#dce2ff;white-space:nowrap}
+.scorebar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}.score{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#ffffff09;border:1px solid #ffffff14;border-radius:14px;min-width:0}.score span{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.score strong{font-size:18px;margin-left:6px}.streak-fire{color:#ff9500}
+.table{border:1px solid #ffffff19;border-radius:25px;background:linear-gradient(135deg,#222d57aa,#111936dd);box-shadow:0 20px 55px #0003;overflow:hidden;padding:clamp(12px,3vw,24px);position:relative}.table:before{content:"";position:absolute;width:70%;height:70%;left:15%;top:15%;border:1px solid #ffffff08;border-radius:50%;pointer-events:none}
+.seat{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}.player-id{display:flex;align-items:center;gap:10px;min-width:0}.avatar{width:39px;height:39px;border-radius:13px;background:#ffffff13;display:grid;place-items:center;font-size:20px;flex-shrink:0}.seat-name{font-weight:800;font-size:14px}.seat-note{font-size:11px;color:var(--muted);margin-top:2px}.mini-hand{display:flex;padding-left:5px;flex-shrink:0}.mini-card{width:21px;height:30px;margin-left:-6px;border-radius:5px;border:1px solid #fff8;background:linear-gradient(145deg,#4d5c99,#252e5d);box-shadow:0 2px 4px #0004}
+.cpu-warning{text-align:center;font-size:13px;font-weight:800;color:var(--red);background:#ff596420;border:1px solid #ff596440;border-radius:999px;padding:8px 14px;margin:8px auto;width:max-content;max-width:90%;animation:pulse 1.2s ease-in-out infinite;position:relative;z-index:1}
+.center{min-height:200px;display:flex;align-items:center;justify-content:center;gap:clamp(18px,5vw,58px);padding:20px 0;position:relative;z-index:1}.pile{display:flex;flex-direction:column;align-items:center;gap:8px}.pile-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:800}
+.deck-card{width:91px;height:132px;border:0;border-radius:15px;background:linear-gradient(145deg,#9b72ff,#5a3dc5);box-shadow:0 9px 0 #382779,0 15px 22px #0005;position:relative;color:white;transition:transform .16s;min-height:44px;min-width:44px}
+.deck-card:active{transform:translateY(-3px) scale(.97)!important}
+.deck-card:before{content:"";position:absolute;inset:7px;border:2px solid #ffffffcc;border-radius:11px;transform:rotate(-8deg)}.deck-symbol{font-size:39px;font-weight:1000;text-shadow:2px 3px #0003}.deck-count{font-size:12px;color:var(--muted);transition:color .2s}
+.card{width:88px;height:128px;flex:0 0 auto;border:3px solid #fff;border-radius:15px;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 7px 0 #0002,0 10px 17px #0003;transition:transform .16s,filter .16s,opacity .2s;overflow:hidden}.card:before{content:"";position:absolute;width:73%;height:82%;border:3px solid #ffffffdd;border-radius:50%;transform:rotate(28deg) skew(-9deg);background:#ffffff12}.card .value{position:relative;z-index:1;font-weight:1000;font-size:39px;line-height:1;text-shadow:2px 3px #0003}.card .corner{position:absolute;font-size:14px;font-weight:1000;z-index:2}.card .tl{top:5px;left:7px}.card .br{bottom:5px;right:7px;transform:rotate(180deg)}
+.red{background:linear-gradient(145deg,#ff6b72,#e72e4d)}.blue{background:linear-gradient(145deg,#58a0ff,#2861db)}.green{background:linear-gradient(145deg,#4ce6a4,#0eae79)}.yellow{background:linear-gradient(145deg,#ffe96c,#ffb82e);color:#27304d}.wild{background:conic-gradient(from 40deg,#ff5367 0 25%,#ffd84d 25% 50%,#3bd99a 50% 75%,#4b8dff 75% 100%)}
+.discard-slot{width:94px;height:135px;display:grid;place-items:center;border:1px dashed #ffffff2c;border-radius:17px}.discard-slot .card{transform:rotate(4deg)}
+.turn-banner{position:relative;z-index:1;text-align:center;font-size:12px;color:#e6eaff;background:#ffffff0b;border:1px solid #ffffff12;border-radius:999px;padding:9px 14px;width:max-content;max-width:100%;margin:0 auto 16px}.turn-banner b{color:var(--yellow)}
+.clr-red{color:var(--red)}.clr-blue{color:var(--blue)}.clr-green{color:var(--green)}.clr-yellow{color:var(--yellow)}.clr-wild{color:var(--purple)}
+.hand-area{margin-top:14px;position:relative;z-index:1}.hand-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}.hand-header h2{font-size:15px;margin:0}.hand-header span{font-size:12px;color:var(--muted)}
+.hand{display:flex;align-items:flex-end;justify-content:center;gap:clamp(3px,1.2vw,12px);min-height:130px;overflow-x:auto;padding:8px 6px 14px;scrollbar-width:thin;scrollbar-color:#53608f transparent;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.hand .card{width:clamp(52px,8vw,82px);height:clamp(78px,12vw,119px);border-width:2px;border-radius:12px;cursor:pointer;scroll-snap-align:center;min-width:48px}.hand .card .value{font-size:clamp(23px,4vw,34px)}.hand .card .corner{font-size:11px}
+.hand .card.playable{transform:translateY(-7px);box-shadow:0 0 0 3px var(--yellow),0 9px 0 #0002,0 14px 20px #0004}
+.hand .card.playable:active{transform:translateY(-3px) scale(.95)!important}
+.hand .card:not(.playable){filter:saturate(.65) brightness(.78);cursor:not-allowed}
+.actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{border:1px solid #ffffff20;background:#ffffff0e;color:#fff;border-radius:13px;padding:12px 17px;font-weight:800;font-size:13px;transition:transform .15s,background .15s;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+.btn:active{transform:scale(.95)!important;background:#ffffff22}
+.btn.primary{background:linear-gradient(135deg,#ffe46c,#ffbd3d);color:#252c48;border:0;box-shadow:0 5px 0 #bd8329}.btn.primary:disabled{opacity:.4;filter:grayscale(.6);cursor:not-allowed;transform:none}.btn.small{padding:9px 12px;font-size:12px;min-height:38px}
+.uno-btn{background:linear-gradient(135deg,#ff5964,#ff3d4d)!important;border:0!important;color:#fff!important;font-size:15px!important;padding:14px 24px!important;box-shadow:0 0 20px #ff596488,0 5px 0 #c62d38!important;animation:unoGlow .6s ease-in-out infinite alternate;position:fixed;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translateX(-50%);z-index:9}
+.uno-btn:active{transform:translateX(-50%) scale(.95)!important}
+.footer{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:15px;color:#8792bc;font-size:11px;padding-bottom:var(--safe-bottom)}.footer button{color:#cdd5ff;background:none;border:0;text-decoration:underline;padding:4px;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;background:#080b19d9;display:flex;align-items:center;justify-content:center;padding:20px;padding-top:calc(20px + var(--safe-top));padding-bottom:calc(20px + var(--safe-bottom));z-index:10;backdrop-filter:blur(8px);overflow-y:auto}
+.modal{width:min(430px,100%);border:1px solid #ffffff24;border-radius:24px;background:linear-gradient(145deg,#252e58,#151b38);box-shadow:0 30px 90px #0008;padding:24px;text-align:center;animation:pop .2s ease-out;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto}.modal h2{margin:0 0 8px;font-size:clamp(22px,4vw,27px)}.modal p{color:var(--muted);font-size:14px;line-height:1.55}
+.color-options{display:flex;justify-content:center;gap:12px;margin:22px 0}.color-choice{width:57px;height:57px;border:3px solid #ffffffbb;border-radius:18px;box-shadow:0 5px 0 #0003;transition:transform .15s;min-width:48px;min-height:48px}.color-choice:active{transform:scale(.92)!important}.color-choice.red{background:#f4475b}.color-choice.blue{background:#3977f4}.color-choice.green{background:#21c989}.color-choice.yellow{background:#ffd33e}
+.hidden{display:none!important}.intro-icon{font-size:46px;margin-bottom:10px}.rules{font-size:12px!important;text-align:left;background:#ffffff08;padding:12px;border-radius:12px}
+.tutorial-dots{display:flex;justify-content:center;gap:8px;margin:18px 0 10px}.dot{width:10px;height:10px;border-radius:50%;background:#ffffff30;transition:background .2s}.dot.active{background:var(--yellow)}.tutorial-nav{display:flex;justify-content:center;gap:10px;margin-top:6px}.tutorial-content{color:var(--muted);font-size:14px;line-height:1.6;text-align:left;background:#ffffff08;padding:14px;border-radius:12px;min-height:80px}.tutorial-content b{color:var(--ink)}
+.result-stats{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes deal{from{opacity:.3;transform:translateY(14px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}.hand .card{animation:deal .22s ease-out}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes unoGlow{from{box-shadow:0 0 10px #ff596444,0 5px 0 #c62d38;transform:translateX(-50%) scale(1)}to{box-shadow:0 0 30px #ff5964aa,0 5px 0 #c62d38;transform:translateX(-50%) scale(1.05)}}
+@media(hover:hover) and (pointer:fine){.deck-card:hover{transform:translateY(-5px) rotate(-2deg)}.btn:hover{background:#ffffff19;transform:translateY(-1px)}.hand .card.playable:hover{transform:translateY(-14px) rotate(-2deg)}.color-choice:hover{transform:translateY(-5px) scale(1.04)}}
+@media(max-width:600px){
+  .app{padding:10px 8px 16px;padding-top:calc(10px + var(--safe-top));padding-bottom:calc(16px + var(--safe-bottom));padding-left:calc(8px + var(--safe-left));padding-right:calc(8px + var(--safe-right))}
+  .topbar{margin-bottom:10px;gap:8px}.brand-mark{width:35px;height:35px;border-radius:11px}.brand-mark:after{font-size:11px;inset:5px;border-radius:8px}h1{font-size:17px}.subtitle{font-size:10px}.pill{padding:7px 10px;font-size:10px}
+  .scorebar{grid-template-columns:repeat(2,1fr);gap:6px}.score{padding:8px 10px;border-radius:11px}.score span{font-size:10px}.score strong{font-size:15px}
+  .table{border-radius:18px;padding:10px 8px}
+  .center{min-height:160px;gap:18px;padding:14px 0}
+  .deck-card{width:64px;height:96px;border-radius:11px;box-shadow:0 6px 0 #382779,0 10px 16px #0005}.deck-symbol{font-size:27px}
+  .discard-slot{width:70px;height:102px;border-radius:13px}.discard-slot .card{width:64px;height:96px;border-radius:11px}.discard-slot .card .value{font-size:27px}.discard-slot .card .corner{font-size:10px}
+  .pile-label{font-size:9px;letter-spacing:1px}.deck-count{font-size:10px}
+  .turn-banner{font-size:11px;padding:8px 12px}
+  .seat-name{font-size:12px}.seat-note{font-size:10px}.avatar{width:34px;height:34px;font-size:17px;border-radius:10px}
+  .cpu-warning{font-size:11px;padding:6px 10px}
+  .hand-header{margin-bottom:8px}.hand-header h2{font-size:13px}
+  .hand{justify-content:flex-start;min-height:105px;gap:4px;padding:6px 4px 12px;scroll-padding:0 8px}
+  .hand .card{width:54px;height:82px;min-width:48px;border-radius:10px}.hand .card .value{font-size:22px}.hand .card .corner{font-size:9px}
+  .hand .card.playable{transform:translateY(-5px)}
+  .actions{gap:6px}.btn{padding:10px 12px;font-size:12px;border-radius:11px}
+  .uno-btn{font-size:14px!important;padding:12px 20px!important}
+  .footer{font-size:10px;margin-top:10px;flex-wrap:wrap;justify-content:center;gap:6px}
+  .modal{padding:20px 16px;border-radius:20px;margin:8px}.modal h2{font-size:22px}
+  .color-choice{width:50px;height:50px;border-radius:15px}.color-options{gap:10px}
+  .mini-card{width:17px;height:25px;border-radius:4px}
+}
+@media(max-width:360px){
+  .app{padding:8px 6px 12px}
+  .scorebar{gap:4px}.score{padding:6px 8px}.score span{font-size:9px}.score strong{font-size:13px}
+  .center{gap:14px;min-height:140px;padding:10px 0}
+  .deck-card{width:56px;height:84px}.deck-symbol{font-size:23px}
+  .discard-slot{width:62px;height:90px}.discard-slot .card{width:56px;height:84px}
+  .hand .card{width:48px;height:72px;min-width:44px}.hand .card .value{font-size:19px}
+  .btn{padding:9px 10px;font-size:11px}
+  .modal{padding:16px 12px}
+}
+@media(max-height:500px) and (orientation:landscape){
+  .app{padding:8px 16px 8px;padding-left:calc(16px + var(--safe-left));padding-right:calc(16px + var(--safe-right))}
+  .topbar{margin-bottom:6px}.brand-mark{width:30px;height:30px;border-radius:9px}.brand-mark:after{font-size:9px;inset:4px}h1{font-size:15px}.subtitle{display:none}.pill{padding:5px 8px;font-size:9px}
+  .scorebar{grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}.score{padding:5px 8px;border-radius:10px}.score span{font-size:9px}.score strong{font-size:13px}
+  .table{padding:6px 10px;border-radius:14px}
+  .seat{gap:6px}.avatar{width:28px;height:28px;font-size:14px;border-radius:8px}.seat-name{font-size:11px}.seat-note{font-size:9px;margin-top:1px}
+  .cpu-warning{font-size:10px;padding:4px 8px;margin:4px auto}
+  .center{min-height:100px;gap:16px;padding:8px 0}
+  .deck-card{width:52px;height:76px;border-radius:10px;box-shadow:0 4px 0 #382779,0 8px 12px #0005}.deck-symbol{font-size:22px}
+  .discard-slot{width:58px;height:82px;border-radius:11px}.discard-slot .card{width:52px;height:76px;border-radius:10px}.discard-slot .card .value{font-size:22px}.discard-slot .card .corner{font-size:9px}
+  .pile-label{font-size:8px}.deck-count{font-size:9px}
+  .turn-banner{font-size:10px;padding:5px 10px;margin-bottom:6px}
+  .hand-area{margin-top:6px}.hand-header{margin-bottom:4px}.hand-header h2{font-size:12px}
+  .hand{min-height:72px;padding:4px 4px 8px;gap:3px}
+  .hand .card{width:42px;height:62px;min-width:40px;border-radius:8px}.hand .card .value{font-size:17px}.hand .card .corner{font-size:8px}
+  .hand .card.playable{transform:translateY(-4px)}
+  .actions{gap:5px;margin-top:2px}.btn{padding:7px 10px;font-size:11px;min-height:36px;border-radius:10px}
+  .uno-btn{font-size:12px!important;padding:8px 16px!important}
+  .footer{margin-top:6px;font-size:9px}
+  .modal{padding:16px;max-height:calc(100vh - 20px)}.modal h2{font-size:20px}.intro-icon{font-size:32px;margin-bottom:6px}
+  .color-choice{width:44px;height:44px;border-radius:13px}
+  .mini-hand{display:none}
+}
+.card .cb{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:900;z-index:2;opacity:.9}
+.hand .card .cb{font-size:9px;bottom:3px}
+@media(max-width:600px){.scorebar{grid-template-columns:repeat(4,1fr)}.score{flex-direction:column;gap:1px;align-items:center;padding:6px 4px}.score strong{margin-left:0}.subtitle,.pill{display:none}.center{min-height:130px;padding:8px 0}.footer{margin-top:6px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark" aria-hidden="true"></div><div><h1>Color Clash</h1><div class="subtitle">QUICK CARD BATTLE</div></div></div>
+    <div class="pill">vs Neon Bot</div>
+  </header>
+  <section class="scorebar" aria-label="Game scores">
+    <div class="score"><span>YOU · WINS</span><strong id="playerWins">0</strong></div>
+    <div class="score"><span>CPU · WINS</span><strong id="cpuWins">0</strong></div>
+    <div class="score"><span>ROUND</span><strong id="roundNum">1</strong></div>
+    <div class="score"><span>🔥 STREAK</span><strong id="streakNum">0</strong></div>
+  </section>
+  <main class="table">
+    <div class="seat">
+      <div class="player-id"><div class="avatar">🤖</div><div><div class="seat-name">Neon Bot</div><div class="seat-note" id="cpuCount">7 cards in hand</div></div></div>
+      <div class="mini-hand" id="cpuMiniHand" aria-hidden="true"></div>
+    </div>
+    <div class="cpu-warning hidden" id="cpuWarning" aria-live="assertive">⚠️ Neon Bot has <span id="cpuWarningCount">2</span> card(s) left!</div>
+    <div class="center">
+      <div class="pile"><div class="pile-label">Draw pile</div><button class="deck-card" id="deckBtn" aria-label="Draw a card"><span class="deck-symbol">✦</span></button><div class="deck-count" id="deckCount">Cards left: 80</div></div>
+      <div class="pile"><div class="pile-label">Current card</div><div class="discard-slot" id="discardSlot"></div><div class="deck-count" id="activeColor">Color: red</div></div>
+    </div>
+    <div class="turn-banner" id="turnBanner" aria-live="polite">Your turn — play a matching card or draw one.</div>
+    <div class="seat">
+      <div class="player-id"><div class="avatar">😎</div><div><div class="seat-name">You</div><div class="seat-note" id="playerCount">7 cards in hand</div></div></div>
+      <button class="btn small" id="newRoundTop">↻ New round</button>
+    </div>
+  </main>
+  <section class="hand-area">
+    <div class="hand-header"><h2>Your hand</h2><span id="handHint">Tap a glowing card to play it</span></div>
+    <div class="hand" id="playerHand" aria-label="Your cards"></div>
+    <div class="actions">
+      <button class="btn primary" id="drawBtn">＋ Draw a card</button>
+      <button class="btn" id="passBtn" disabled>Pass turn</button>
+      <button class="btn uno-btn hidden" id="unoBtn">🔔 LAST CARD!</button>
+      <button class="btn" id="rulesBtn">How to play</button>
+      <button class="btn" id="tutorialBtn">📖 Tutorial</button>
+    </div>
+  </section>
+  <footer class="footer"><span>Beat Neon Bot · build your win streak</span><div style="display:flex;gap:8px;align-items:center"><button id="musicToggle" class="btn small" aria-label="Toggle sound" style="font-size:16px;padding:6px 10px">🎵</button><button id="restartBtn">Restart game</button></div></footer>
+</div>
+
+<div class="overlay hidden" id="colorModal" role="dialog" aria-modal="true" aria-labelledby="colorTitle">
+  <div class="modal"><div class="intro-icon">🌈</div><h2 id="colorTitle">Choose a colour</h2><p>Your wild card can change the colour in play.</p><div class="color-options"><button class="color-choice red" data-color="red" aria-label="Red"></button><button class="color-choice blue" data-color="blue" aria-label="Blue"></button><button class="color-choice green" data-color="green" aria-label="Green"></button><button class="color-choice yellow" data-color="yellow" aria-label="Yellow"></button></div><button class="btn" id="cancelColor">Cancel</button></div>
+</div>
+<div class="overlay hidden" id="messageModal" role="dialog" aria-modal="true" aria-labelledby="messageTitle">
+  <div class="modal"><div class="intro-icon" id="resultIcon">🏆</div><h2 id="messageTitle">Round complete!</h2><p id="messageText"></p><div class="result-stats" id="resultStats"></div><button class="btn primary" id="nextRoundBtn">Play next round →</button><button class="btn" id="closeMessageBtn" style="margin-left:7px">Keep score</button></div>
+</div>
+<div class="overlay hidden" id="rulesModal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+  <div class="modal"><div class="intro-icon">🃏</div><h2 id="rulesTitle">How to play</h2><p class="rules">• Match the top card by colour or symbol.<br>• Draw a card if you cannot play.<br>• Skip and Reverse make the other player lose a turn in this 2-player version.<br>• Draw Two makes the opponent draw 2 and lose a turn.<br>• Wild lets you choose a colour. Wild +4 changes colour and makes the opponent draw 4.<br>• When you have 1 card left, press the LAST CARD button fast or draw 2 penalty cards!<br>• First player to empty their hand wins the round.</p><button class="btn primary" id="closeRulesBtn">Let's play</button></div>
+</div>
+<div class="overlay hidden" id="tutorialModal" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+  <div class="modal"><div class="intro-icon" id="tutorialIcon">🎯</div><h2 id="tutorialTitle">Welcome!</h2><div class="tutorial-content" id="tutorialText"></div><div class="tutorial-dots" id="tutorialDots"></div><div class="tutorial-nav"><button class="btn" id="tutorialPrev">← Back</button><button class="btn primary" id="tutorialNext">Next →</button></div></div>
+</div>
+
+<div class="overlay hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmText">
+  <div class="modal"><div class="intro-icon">❓</div><h2>Are you sure?</h2><p id="confirmText"></p><button class="btn primary" id="confirmYes">Yes</button><button class="btn" id="confirmNo" style="margin-left:7px">No</button></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ── CONSTANTS ──────────────────────────────────────────
+const COLORS = ['red','blue','green','yellow'];
+const LAST_CARD_TIMEOUT = 5000;
+
+// ── STATE ──────────────────────────────────────────────
+const state = {
+  deck:[], discard:[], player:[], cpu:[],
+  activeColor:'red', turn:'player', busy:false, gameOver:false,
+  drawnId:null, round:1, playerWins:0, cpuWins:0,
+  pendingWild:null, paused:false, bestScore:0,
+  previousColor:null, streak:0, bestStreak:0,
+  tutorialSeen:false, unoCalled:false, unoNeeded:false,
+  consecutivePasses:0, totalWins:0, pendingWildDrawn:null
+};
+
+// ── HELPERS ────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+let shownIds = new Set(), saveBlocked = false, confirmCb = null;
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function sleep(ms){
+  let left = ms, last = Date.now();
+  while(left > 0){
+    await new Promise(r => setTimeout(r, state.paused ? 100 : Math.min(50, left)));
+    const n = Date.now();
+    if(!state.paused) left -= (n - last);
+    last = n;
+  }
+  while(state.paused) await new Promise(r => setTimeout(r, 100)); // never return while paused
+}
+
+// ── SOUND ENGINE (Web Audio API — zero external files) ─
+let audioCtx = null;
+let audioEnabled = true;
+let musicEnabled = true;
+let musicNodes = null; // { gains, oscillators, lfo, masterGain }
+
+function initAudio(){
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+}
+
+// ── BACKGROUND MUSIC (procedural ambient loop) ─────────
+// Calm, atmospheric pad that cycles through gentle chord progressions
+function startBackgroundMusic(){
+  if(!audioCtx || !audioEnabled || !musicEnabled || state.paused) return;
+  if(musicNodes) return; // already playing
+  if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+
+  try {
+    const now = audioCtx.currentTime;
+
+    // Master volume for music
+    const masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(0.06, now + 2); // fade in gently
+    masterGain.connect(audioCtx.destination);
+
+    // Chord progression: Am → F → C → G (calming loop)
+    // Frequencies for each chord (root + third + fifth, low octave)
+    const chords = [
+      [110.00, 130.81, 164.81],   // Am  (A2, C3, E3)
+      [87.31, 110.00, 130.81],    // F   (F2, A2, C3)
+      [130.81, 164.81, 196.00],   // C   (C3, E3, G3)
+      [98.00, 123.47, 146.83],    // G   (G2, B2, D3)
+    ];
+
+    const CHORD_DUR = 4.0; // seconds per chord
+    const TOTAL_LOOP = chords.length * CHORD_DUR;
+    const oscillators = [];
+    const gains = [];
+
+    // Create 3 pad voices (one per note in chord)
+    for(let v = 0; v < 3; v++){
+      // Two detuned oscillators per voice for a rich pad sound
+      for(let d = 0; d < 2; d++){
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        const detune = (d === 0) ? -6 : 6; // slight detuning for warmth
+        osc.detune.setValueAtTime(detune, now);
+
+        const voiceGain = audioCtx.createGain();
+        voiceGain.gain.setValueAtTime(0.3, now);
+
+        // Schedule chord changes for a long duration (loop manually)
+        const totalSchedule = 600; // schedule 10 minutes ahead
+        for(let t = 0; t < totalSchedule; t += CHORD_DUR){
+          const chordIdx = Math.floor((t / CHORD_DUR) % chords.length);
+          const freq = chords[chordIdx][v];
+          osc.frequency.setValueAtTime(freq, now + t);
+          // Gentle volume swell per chord
+          voiceGain.gain.setValueAtTime(0.15, now + t);
+          voiceGain.gain.linearRampToValueAtTime(0.35, now + t + CHORD_DUR * 0.5);
+          voiceGain.gain.linearRampToValueAtTime(0.15, now + t + CHORD_DUR);
+        }
+
+        osc.connect(voiceGain);
+        voiceGain.connect(masterGain);
+        osc.start(now);
+        osc.stop(now + totalSchedule);
+        oscillators.push(osc);
+        gains.push(voiceGain);
+      }
+    }
+
+    // Add a gentle high shimmer layer
+    const shimmer = audioCtx.createOscillator();
+    shimmer.type = 'sine';
+    const shimmerGain = audioCtx.createGain();
+    shimmerGain.gain.setValueAtTime(0.04, now);
+
+    // Shimmer note follows root of chord, up 2 octaves
+    const shimmerSchedule = 600;
+    for(let t = 0; t < shimmerSchedule; t += CHORD_DUR){
+      const chordIdx = Math.floor((t / CHORD_DUR) % chords.length);
+      const freq = chords[chordIdx][0] * 4; // 2 octaves up
+      shimmer.frequency.setValueAtTime(freq, now + t);
+      shimmerGain.gain.setValueAtTime(0.02, now + t);
+      shimmerGain.gain.linearRampToValueAtTime(0.06, now + t + CHORD_DUR * 0.3);
+      shimmerGain.gain.linearRampToValueAtTime(0.02, now + t + CHORD_DUR);
+    }
+
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(masterGain);
+    shimmer.start(now);
+    shimmer.stop(now + shimmerSchedule);
+    oscillators.push(shimmer);
+    gains.push(shimmerGain);
+
+    // LFO for subtle tremolo
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.3, now); // very slow wobble
+    lfoGain.gain.setValueAtTime(0.008, now);
+    lfo.connect(lfoGain);
+    lfoGain.connect(masterGain.gain);
+    lfo.start(now);
+
+    const nodes = { masterGain, oscillators, gains, lfo, lfoGain };
+    musicNodes = nodes;
+
+    // Auto-restart only when the loop ran out naturally (not when stopped on purpose)
+    oscillators[0].addEventListener('ended', () => {
+      if(musicNodes !== nodes) return;
+      musicNodes = null;
+      if(musicEnabled && audioEnabled && !state.paused) startBackgroundMusic();
+    });
+  } catch(e){ console.warn('Music error:', e); }
+}
+
+function stopBackgroundMusic(){
+  if(!musicNodes) return;
+  const n = musicNodes;
+  musicNodes = null; // stopped on purpose: the 'ended' handler must not restart it
+  try {
+    n.masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+    setTimeout(() => {
+      try { n.oscillators.forEach(o => { try { o.stop(); } catch(_){} }); n.lfo.stop(); } catch(_){}
+    }, 1200);
+  } catch(e){}
+}
+
+function toggleMusic(){
+  musicEnabled = !musicEnabled;
+  $('musicToggle').textContent = musicEnabled ? '🎵' : '🔇';
+  if(musicEnabled) startBackgroundMusic();
+  else stopBackgroundMusic();
+}
+
+// ── LAST CARD VOICE (synthesized loud shout) ─────────────────
+// Creates a punchy, loud "LAST CARD!" sound using layered oscillators
+// simulating a vocal shout effect
+function playUnoVoice(){
+  if(!audioCtx || !audioEnabled || !musicEnabled || state.paused) return;
+  if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+
+  try {
+    const t = audioCtx.currentTime;
+    const masterGain = audioCtx.createGain();
+    masterGain.gain.setValueAtTime(0.3, t);
+    masterGain.connect(audioCtx.destination);
+
+    // "U" sound — deep vowel formant burst
+    const uFundamental = audioCtx.createOscillator();
+    uFundamental.type = 'sawtooth';
+    uFundamental.frequency.setValueAtTime(180, t);
+    uFundamental.frequency.linearRampToValueAtTime(220, t + 0.08);
+    const uGain = audioCtx.createGain();
+    uGain.gain.setValueAtTime(0.5, t);
+    uGain.gain.linearRampToValueAtTime(0.0, t + 0.18);
+    uFundamental.connect(uGain);
+    uGain.connect(masterGain);
+    uFundamental.start(t);
+    uFundamental.stop(t + 0.2);
+
+    // Formant 1 for "U" (around 320 Hz)
+    const uForm1 = audioCtx.createOscillator();
+    uForm1.type = 'sine';
+    uForm1.frequency.setValueAtTime(320, t);
+    const uf1Gain = audioCtx.createGain();
+    uf1Gain.gain.setValueAtTime(0.35, t);
+    uf1Gain.gain.linearRampToValueAtTime(0, t + 0.15);
+    uForm1.connect(uf1Gain);
+    uf1Gain.connect(masterGain);
+    uForm1.start(t);
+    uForm1.stop(t + 0.18);
+
+    // "N" sound — nasal buzz
+    const nOsc = audioCtx.createOscillator();
+    nOsc.type = 'triangle';
+    nOsc.frequency.setValueAtTime(280, t + 0.12);
+    nOsc.frequency.linearRampToValueAtTime(260, t + 0.26);
+    const nGain = audioCtx.createGain();
+    nGain.gain.setValueAtTime(0, t);
+    nGain.gain.setValueAtTime(0, t + 0.1);
+    nGain.gain.linearRampToValueAtTime(0.4, t + 0.15);
+    nGain.gain.linearRampToValueAtTime(0.3, t + 0.22);
+    nGain.gain.linearRampToValueAtTime(0, t + 0.3);
+    nOsc.connect(nGain);
+    nGain.connect(masterGain);
+    nOsc.start(t + 0.1);
+    nOsc.stop(t + 0.32);
+
+    // "O!" sound — open vowel with rising pitch (exclamation)
+    const oOsc = audioCtx.createOscillator();
+    oOsc.type = 'sawtooth';
+    oOsc.frequency.setValueAtTime(250, t + 0.22);
+    oOsc.frequency.linearRampToValueAtTime(400, t + 0.35);
+    oOsc.frequency.linearRampToValueAtTime(350, t + 0.5);
+    const oGain = audioCtx.createGain();
+    oGain.gain.setValueAtTime(0, t + 0.2);
+    oGain.gain.linearRampToValueAtTime(0.55, t + 0.28);
+    oGain.gain.setValueAtTime(0.55, t + 0.38);
+    oGain.gain.linearRampToValueAtTime(0, t + 0.55);
+    oOsc.connect(oGain);
+    oGain.connect(masterGain);
+    oOsc.start(t + 0.2);
+    oOsc.stop(t + 0.58);
+
+    // Formant for "O" (around 800 Hz — open vowel)
+    const oForm = audioCtx.createOscillator();
+    oForm.type = 'sine';
+    oForm.frequency.setValueAtTime(800, t + 0.22);
+    oForm.frequency.linearRampToValueAtTime(900, t + 0.35);
+    const ofGain = audioCtx.createGain();
+    ofGain.gain.setValueAtTime(0, t + 0.2);
+    ofGain.gain.linearRampToValueAtTime(0.25, t + 0.28);
+    ofGain.gain.linearRampToValueAtTime(0, t + 0.5);
+    oForm.connect(ofGain);
+    ofGain.connect(masterGain);
+    oForm.start(t + 0.2);
+    oForm.stop(t + 0.55);
+
+    // High-frequency "brightness" layer for the shout
+    const bright = audioCtx.createOscillator();
+    bright.type = 'square';
+    bright.frequency.setValueAtTime(1200, t + 0.25);
+    bright.frequency.linearRampToValueAtTime(1600, t + 0.35);
+    const bGain = audioCtx.createGain();
+    bGain.gain.setValueAtTime(0, t + 0.22);
+    bGain.gain.linearRampToValueAtTime(0.08, t + 0.3);
+    bGain.gain.linearRampToValueAtTime(0, t + 0.45);
+    bright.connect(bGain);
+    bGain.connect(masterGain);
+    bright.start(t + 0.22);
+    bright.stop(t + 0.48);
+
+    // Impact sub-bass hit for punch
+    const sub = audioCtx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(80, t);
+    const subGain = audioCtx.createGain();
+    subGain.gain.setValueAtTime(0.4, t);
+    subGain.gain.linearRampToValueAtTime(0, t + 0.25);
+    sub.connect(subGain);
+    subGain.connect(masterGain);
+    sub.start(t);
+    sub.stop(t + 0.28);
+
+    // Reverb-like tail (echo effect)
+    const echo1 = audioCtx.createOscillator();
+    echo1.type = 'sine';
+    echo1.frequency.setValueAtTime(350, t + 0.5);
+    const e1Gain = audioCtx.createGain();
+    e1Gain.gain.setValueAtTime(0.1, t + 0.5);
+    e1Gain.gain.linearRampToValueAtTime(0, t + 0.9);
+    echo1.connect(e1Gain);
+    e1Gain.connect(masterGain);
+    echo1.start(t + 0.5);
+    echo1.stop(t + 0.95);
+
+  } catch(e){}
+}
+
+function playSound(type){
+  if(!audioEnabled || !audioCtx || !musicEnabled || state.paused) return;
+  if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  try {
+    const t = audioCtx.currentTime;
+    const note = (freq, start, dur, vol, wave) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = wave || 'sine';
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.setValueAtTime(freq, t + start);
+      g.gain.setValueAtTime(vol || 0.15, t + start);
+      g.gain.linearRampToValueAtTime(0, t + start + dur);
+      o.start(t + start); o.stop(t + start + dur);
+    };
+    switch(type){
+      case 'play':   note(523,0,0.1,0.13); note(392,0.04,0.09,0.1); break;
+      case 'draw':   note(330,0,0.09,0.1); note(440,0.05,0.08,0.1); break;
+      case 'win':    note(523,0,0.22,0.18); note(659,0.15,0.22,0.18); note(784,0.3,0.28,0.2); break;
+      case 'lose':   note(392,0,0.18,0.1); note(330,0.12,0.18,0.1); note(262,0.24,0.25,0.12); break;
+      case 'uno':    playUnoVoice(); break;  // 🔊 LOUD LAST CARD VOICE!
+      case 'penalty':note(200,0,0.18,0.1,'square'); note(160,0.1,0.2,0.08,'square'); break;
+      case 'skip':   note(600,0,0.06,0.1); note(800,0.04,0.06,0.1); note(500,0.08,0.08,0.08); break;
+      case 'wild':   note(523,0,0.1,0.12,'triangle'); note(659,0.06,0.1,0.12,'triangle'); note(784,0.12,0.1,0.12,'triangle'); note(1047,0.18,0.14,0.14,'triangle'); break;
+      case 'click':  note(700,0,0.04,0.06); break;
+    }
+  } catch(e){}
+}
+
+// ── YOUTUBE SDK INTEGRATION ────────────────────────────
+const inPlayables = () => typeof ytgame !== 'undefined' && !!ytgame.IN_PLAYABLES_ENV;
+
+function setupPlayableLifecycle(){
+  if(typeof ytgame === 'undefined') return;
+  try { ytgame.system.onPause(() => { state.paused = true; if(audioCtx) audioCtx.suspend().catch(()=>{}); }); } catch(_){}
+  try { ytgame.system.onResume(() => {
+    state.paused = false;
+    if(audioCtx && audioEnabled) audioCtx.resume().catch(()=>{});
+    startBackgroundMusic(); render();
+  }); } catch(_){}
+  try {
+    audioEnabled = ytgame.system.isAudioEnabled();
+    ytgame.system.onAudioEnabledChange(enabled => {
+      audioEnabled = enabled;
+      if(enabled) startBackgroundMusic();
+      else stopBackgroundMusic();
+    });
+  } catch(_){}
+}
+
+// ── SAVE / LOAD ────────────────────────────────────────
+function applyLoadedData(s){
+  state.playerWins = Number(s.playerWins) || 0;
+  state.cpuWins = Number(s.cpuWins) || 0;
+  state.bestScore = Number(s.bestScore) || 0;
+  state.round = Math.max(1, Number(s.round) || 1);
+  state.streak = Number(s.streak) || 0;
+  state.bestStreak = Number(s.bestStreak) || 0;
+  state.tutorialSeen = !!s.tutorialSeen;
+  state.totalWins = Number(s.totalWins) || Number(s.playerWins) || 0;
+}
+
+function readBrowserSave(){
+  try {
+    let raw = localStorage.getItem('color-clash-save-v2');
+    if(!raw) raw = localStorage.getItem('color-clash-save-v1'); // backward compat
+    if(raw) applyLoadedData(JSON.parse(raw));
+  } catch(_){}
+}
+
+async function loadProgress(){
+  if(inPlayables()){
+    let timedOut = false;
+    const load = Promise.resolve().then(() => ytgame.game.loadData())
+      .then(raw => { if(raw) applyLoadedData(JSON.parse(raw)); }).catch(()=>{});
+    await Promise.race([load, new Promise(r => setTimeout(() => { timedOut = true; r(); }, 4000))]);
+    // slow load: don't overwrite the real save with defaults until it arrives
+    if(timedOut){ saveBlocked = true; load.then(() => { saveBlocked = false; render(); }); }
+  } else { readBrowserSave(); }
+}
+
+async function saveProgress(){
+  if(saveBlocked) return;
+  const payload = {
+    version:2, totalWins:state.totalWins, playerWins:state.playerWins, cpuWins:state.cpuWins,
+    bestScore:state.bestScore, round:state.round,
+    streak:state.streak, bestStreak:state.bestStreak,
+    tutorialSeen:state.tutorialSeen
+  };
+  if(inPlayables()){
+    try { await ytgame.game.saveData(JSON.stringify(payload)); } catch(_){}
+  } else {
+    try { localStorage.setItem('color-clash-save-v2', JSON.stringify(payload)); } catch(_){}
+  }
+}
+
+async function submitBestScore(){
+  const score = state.totalWins * 100 + state.bestStreak * 50;
+  if(score <= state.bestScore) return;
+  state.bestScore = score;
+  if(inPlayables()){ try { await ytgame.engagement.sendScore({value:score}); } catch(_){} }
+  await saveProgress();
+}
+
+// ── DECK & CARDS ───────────────────────────────────────
+function makeDeck(){
+  const d = []; let id = 1;
+  COLORS.forEach(color => {
+    d.push({id:id++, color, value:'0'});
+    for(let n=1; n<=9; n++){ d.push({id:id++, color, value:String(n)}); d.push({id:id++, color, value:String(n)}); }
+    ['Skip','Reverse','+2'].forEach(value => { d.push({id:id++, color, value}); d.push({id:id++, color, value}); });
+  });
+  for(let i=0; i<4; i++){ d.push({id:id++, color:'wild', value:'Wild'}); d.push({id:id++, color:'wild', value:'Wild +4'}); }
+  return shuffle(d);
+}
+
+function shuffle(a){ for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function topCard(){ return state.discard[state.discard.length-1]; }
+function isWild(card){ return card.color === 'wild'; }
+function canPlay(card){ const top=topCard(); return !!top && (isWild(card) || card.color===state.activeColor || card.value===top.value); }
+
+function drawOne(){
+  if(!state.deck.length){
+    if(state.discard.length <= 1) return null;
+    const top = state.discard.pop();
+    state.deck = shuffle(state.discard);
+    state.discard = [top];
+  }
+  return state.deck.pop();
+}
+
+function refillHand(who, n){
+  for(let i=0; i<n; i++){ const c=drawOne(); if(c) state[who].push(c); }
+}
+
+// ── RENDERING ──────────────────────────────────────────
+const COLOR_ORDER = {red:0, blue:1, green:2, yellow:3, wild:4};
+const VALUE_ORDER = {'Skip':10, 'Reverse':11, '+2':12, 'Wild':13, 'Wild +4':14};
+function cardRank(c){ return c.value in VALUE_ORDER ? VALUE_ORDER[c.value] : Number(c.value); }
+function sortedHand(){ return [...state.player].sort((a,b) => COLOR_ORDER[a.color]-COLOR_ORDER[b.color] || cardRank(a)-cardRank(b)); }
+
+function labelValue(v){ return ({'Skip':'⊘','Reverse':'⇄','+2':'+2','Wild':'✦','Wild +4':'+4'})[v] || v; }
+
+function cardMarkup(card, extra){
+  const colorClass = card.color==='wild' ? 'wild' : card.color;
+  const value = labelValue(card.value);
+  return '<div class="card '+colorClass+' '+(extra||'')+'" data-id="'+card.id+'" role="img" aria-label="'+escapeHtml(card.color+' '+card.value)+'"><span class="corner tl">'+escapeHtml(value)+'</span><span class="value">'+escapeHtml(value)+'</span><span class="corner br">'+escapeHtml(value)+'</span>'+({red:'<span class="cb">R</span>',blue:'<span class="cb">B</span>',green:'<span class="cb">G</span>',yellow:'<span class="cb">Y</span>'}[card.color]||'')+'</div>';
+}
+
+function render(){
+  $('playerWins').textContent = state.playerWins;
+  $('cpuWins').textContent = state.cpuWins;
+  $('roundNum').textContent = state.round;
+  $('streakNum').innerHTML = state.streak > 0
+    ? '<span class="streak-fire">'+state.streak+'</span>'
+    : '0';
+
+  const cpuLen = state.cpu.length;
+  const plLen = state.player.length;
+  $('cpuCount').textContent = cpuLen+' card'+(cpuLen===1?'':'s')+' in hand';
+  $('playerCount').textContent = plLen+' card'+(plLen===1?'':'s')+' in hand';
+  $('deckCount').textContent = 'Cards left: '+state.deck.length;
+  $('activeColor').textContent = 'Color: '+state.activeColor;
+  $('activeColor').className = 'deck-count clr-'+state.activeColor;
+
+  $('cpuMiniHand').innerHTML = Array.from({length:Math.min(cpuLen,10)}, ()=>'<div class="mini-card"></div>').join('');
+
+  // CPU low-card warning
+  const warn = $('cpuWarning');
+  if(cpuLen <= 2 && cpuLen > 0 && !state.gameOver){
+    warn.classList.remove('hidden');
+    $('cpuWarningCount').textContent = cpuLen;
+  } else {
+    warn.classList.add('hidden');
+  }
+
+  const top = topCard();
+  $('discardSlot').innerHTML = top ? cardMarkup(top) : '';
+
+  // Player hand
+  const hand = $('playerHand');
+  hand.innerHTML = '';
+  sortedHand().forEach(card => {
+    const playable = state.turn==='player' && !state.busy && !state.gameOver
+      && canPlay(card) && (state.drawnId===null || state.drawnId===card.id);
+    const wrap = document.createElement('div');
+    wrap.innerHTML = cardMarkup(card, playable ? 'playable' : '');
+    const el = wrap.firstElementChild;
+    el.setAttribute('role', playable ? 'button' : 'img');
+    el.setAttribute('tabindex', playable ? '0' : '-1');
+    el.setAttribute('aria-label', card.color+' '+card.value+(playable?', playable':''));
+    if(playable){
+      el.addEventListener('click', () => playCard('player', card.id));
+      el.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); playCard('player', card.id); } });
+    }
+    if(shownIds.has(card.id)) el.style.animation = 'none'; // animate only newly dealt cards
+    hand.appendChild(el);
+  });
+  shownIds = new Set(state.player.map(c => c.id));
+  if(state.drawnId !== null){
+    const dEl = hand.querySelector('[data-id="'+state.drawnId+'"]');
+    if(dEl) hand.scrollLeft += dEl.getBoundingClientRect().left - hand.getBoundingClientRect().left - (hand.clientWidth - dEl.offsetWidth) / 2;
+  }
+
+  const playerTurn = state.turn==='player' && !state.busy && !state.gameOver && !state.paused;
+  $('drawBtn').textContent = state.gameOver ? '▶ Next round' : '＋ Draw a card';
+  $('drawBtn').disabled = state.gameOver ? false : (!playerTurn || state.drawnId !== null);
+  $('deckBtn').disabled = !playerTurn || state.drawnId !== null;
+  $('passBtn').disabled = !playerTurn || state.drawnId === null;
+
+  // Context-sensitive hand hint
+  const hasPlayable = state.player.some(canPlay);
+  if(state.drawnId !== null){
+    $('handHint').textContent = 'Play the card you just drew, or pass';
+  } else if(playerTurn && !hasPlayable){
+    $('handHint').textContent = 'No cards match! Draw a card from the deck ↑';
+  } else {
+    $('handHint').textContent = 'Tap a glowing card to play it';
+  }
+}
+
+function setBanner(text){ $('turnBanner').innerHTML = text; }
+
+// ── GAME LOGIC ─────────────────────────────────────────
+function startRound(){
+  state.deck = makeDeck(); state.discard = []; state.player = []; state.cpu = [];
+  state.activeColor = 'red'; state.turn = Math.random() < 0.5 ? 'player' : 'cpu'; state.busy = false; shownIds = new Set();
+  state.gameOver = false; state.drawnId = null; state.pendingWild = null;
+  state.unoCalled = false; state.unoNeeded = false; state.consecutivePasses = 0;
+
+  for(let i=0; i<7; i++){ state.player.push(state.deck.pop()); state.cpu.push(state.deck.pop()); }
+  let first = state.deck.pop();
+  while(first && !/^[0-9]$/.test(first.value)){ /* start on a plain number card */ state.deck.unshift(first); first = state.deck.pop(); }
+  state.discard.push(first || {id:0, color:'red', value:'0'});
+  state.activeColor = first ? first.color : 'red';
+
+  $('unoBtn').classList.add('hidden');
+  if(state.turn === 'cpu'){ setBanner('Neon Bot goes first…'); render(); setTimeout(() => cpuTurn(), 500); }
+  else { setBanner('Your turn — play a matching card or draw one.'); render(); }
+}
+
+function removeCard(who, id){
+  const idx = state[who].findIndex(c => c.id === id);
+  return idx < 0 ? null : state[who].splice(idx, 1)[0];
+}
+
+async function playCard(who, id){
+  if(state.busy || state.gameOver || state.paused || state.turn !== who) return;
+  const hand = state[who], card = hand.find(c => c.id === id);
+  if(!card) return;
+  if(!canPlay(card)){
+    if(who === 'player') setBanner('That card does not match. Choose a glowing card or draw.');
+    return;
+  }
+
+  try {
+    state.busy = true;
+    state.consecutivePasses = 0;
+    const played = removeCard(who, id);
+    state.discard.push(played);
+    const prevDrawn = state.drawnId;
+    state.drawnId = null;
+
+    if(!isWild(played)) state.activeColor = played.color;
+
+    playSound(isWild(played) ? 'wild' : 'play');
+    render();
+
+    if(hand.length === 0){ endRound(who); return; }
+
+    if(isWild(played) && who === 'player'){
+      state.pendingWild = played;
+      state.pendingWildDrawn = prevDrawn;
+      state.previousColor = state.activeColor;
+      render();
+      $('colorModal').classList.remove('hidden');
+      return; // finishEffect is called from chooseWildColor
+    }
+
+    if(isWild(played) && who === 'cpu'){
+      state.activeColor = chooseCpuColor();
+      await finishEffect(played, who);
+      return;
+    }
+
+    await finishEffect(played, who);
+  } catch(e){
+    console.error(e);
+    state.busy = false;
+    render();
+  }
+}
+
+// BUG FIX: spread COLORS to avoid mutating the global array
+function chooseCpuColor(){
+  const counts = {red:0, blue:0, green:0, yellow:0};
+  state.cpu.forEach(c => { if(c.color !== 'wild') counts[c.color]++; });
+  return [...COLORS].sort((a,b) => counts[b] - counts[a])[0];
+}
+
+// ── LAST CARD MECHANIC ───────────────────────────────────────
+async function checkUno(who){
+  if(state[who].length !== 1 || state.gameOver) return;
+
+  if(who === 'player'){
+    state.unoNeeded = true;
+    state.unoCalled = false;
+    $('unoBtn').classList.remove('hidden');
+    setBanner('You have 1 card left! Press <b>LAST CARD!</b> quick! 🔔');
+    render();
+
+    // Wait for the player to press the button; the timer is frozen while paused
+    let left = LAST_CARD_TIMEOUT, last = Date.now();
+    while(left > 0 && !state.unoCalled){
+      await new Promise(r => setTimeout(r, 50));
+      const n = Date.now();
+      if(!state.paused) left -= (n - last);
+      last = n;
+    }
+
+    $('unoBtn').classList.add('hidden');
+    state.unoNeeded = false;
+
+    if(!state.unoCalled){
+      refillHand('player', 2);
+      playSound('penalty');
+      setBanner('You forgot to call LAST CARD! Draw 2 penalty cards 😬');
+      render();
+      await sleep(1200);
+    } else {
+      playSound('uno');
+      setBanner('LAST CARD! Well called! 🔔');
+      await sleep(800);
+    }
+  } else {
+    // CPU always calls it (the player has no way to catch it)
+    await sleep(400);
+    playSound('uno');
+    setBanner('Neon Bot calls <b>LAST CARD!</b> 🔔');
+    await sleep(800);
+  }
+}
+
+async function finishEffect(card, who){
+  const other = who === 'player' ? 'cpu' : 'player';
+
+  if(card.value === '+2'){
+    refillHand(other, 2);
+    playSound('skip');
+    setBanner(who==='player' ? 'You played Draw Two — the bot draws 2.' : 'The bot played Draw Two — you draw 2 cards.');
+  } else if(card.value === 'Wild +4'){
+    refillHand(other, 4);
+    playSound('skip');
+    setBanner(who==='player' ? 'Wild +4! The bot draws 4.' : 'Wild +4! You draw 4 cards.');
+  } else if(card.value === 'Skip' || card.value === 'Reverse'){
+    playSound('skip');
+    setBanner((who==='player'?'You':'The bot')+' played '+card.value+' — the other player loses a turn.');
+  } else {
+    setBanner(who==='player' ? 'Nice move! The bot is thinking…' : 'The bot played a card. Your turn next.');
+  }
+
+  render();
+  await sleep(650);
+
+  // LAST CARD check: fires when the player who just played is down to 1 card
+  if(state[who].length === 1 && !state.gameOver){
+    await checkUno(who);
+    if(state.gameOver) return;
+  }
+
+  // Turn logic: action cards skip opponent in 2-player
+  if(card.value === '+2' || card.value === 'Wild +4' || card.value === 'Skip' || card.value === 'Reverse'){
+    state.turn = who;
+  } else {
+    state.turn = other;
+  }
+
+  state.busy = false;
+  render();
+
+  // Use setTimeout to avoid deep recursion when CPU chains action cards
+  if(state.turn === 'cpu') setTimeout(() => cpuTurn(), 0);
+  else if(!state.gameOver) setBanner('Your turn — play a matching card or draw one.');
+}
+
+// ── STALEMATE DETECTION ────────────────────────────────
+function endRoundStalemate(){
+  state.gameOver = true; state.busy = false; state.drawnId = null;
+  $('unoBtn').classList.add('hidden');
+
+  const winner = state.player.length < state.cpu.length ? 'player'
+    : state.cpu.length < state.player.length ? 'cpu' : null;
+
+  if(winner){
+    if(winner === 'player'){ state.playerWins++; state.totalWins++; state.streak++; if(state.streak > state.bestStreak) state.bestStreak = state.streak; }
+    else { state.cpuWins++; state.streak = 0; }
+  }
+
+  render(); saveProgress(); submitBestScore();
+  playSound(winner === 'player' ? 'win' : 'lose');
+
+  $('resultIcon').textContent = winner === 'player' ? '🏆' : winner === 'cpu' ? '🤖' : '🤝';
+  $('messageTitle').textContent = winner ? (winner === 'player' ? 'You win!' : 'Neon Bot wins!') : 'Stalemate!';
+  $('messageText').textContent = winner
+    ? 'Stalemate — '+(winner === 'player' ? 'you win' : 'bot wins')+' with fewer cards!'
+    : 'Neither player can play or draw. It\'s a draw!';
+  showResultStats(winner);
+  $('nextRoundBtn').textContent = 'Play next round →';
+  $('messageModal').classList.remove('hidden');
+  setBanner(winner ? 'Stalemate — '+(winner==='player'?'you win':'bot wins')+'!' : 'Round ended in a stalemate.');
+}
+
+// ── DRAW & PASS ────────────────────────────────────────
+let drawLock = false;
+async function drawForPlayer(){
+  if(state.paused) return;
+  if(state.gameOver){ $('messageModal').classList.add('hidden'); state.round++; saveProgress(); startRound(); return; }
+  if(drawLock) return; // debounce double-click
+  if(state.turn !== 'player' || state.busy || state.gameOver || state.paused || state.drawnId !== null) return;
+
+  drawLock = true;
+  try {
+    const card = drawOne();
+
+    if(!card){
+      // Can't draw — check if player can play from hand
+      const canPlayAny = state.player.some(canPlay);
+      if(canPlayAny){
+        setBanner('No cards to draw. Play a card from your hand.');
+        return;
+      }
+      // Can't play or draw → force pass
+      state.consecutivePasses++;
+      if(state.consecutivePasses >= 2){ endRoundStalemate(); return; }
+      state.turn = 'cpu'; state.busy = true;
+      setBanner('You can\'t play or draw. Turn passes to Neon Bot.');
+      render();
+      await sleep(800);
+      state.busy = false;
+      cpuTurn();
+      return;
+    }
+
+    playSound('draw');
+    state.player.push(card);
+    state.drawnId = card.id;
+    setBanner(canPlay(card) ? 'You drew a playable card — play it or pass.' : 'You drew a card. Press Pass to end your turn.');
+    render();
+  } finally {
+    drawLock = false;
+  }
+}
+
+async function passTurn(){
+  if(state.turn !== 'player' || state.busy || state.gameOver || state.paused || state.drawnId === null) return;
+  playSound('click');
+  state.drawnId = null; state.turn = 'cpu'; state.busy = true;
+  setBanner('Neon Bot is thinking…');
+  render();
+  await sleep(500);
+  state.busy = false;
+  cpuTurn();
+}
+
+// ── CPU AI (smarter strategy) ──────────────────────────
+function scoreCard(c){
+  let base = ({'Wild +4':7, '+2':6, 'Skip':5, 'Reverse':4, 'Wild':3})[c.value] || 1;
+
+  // Prefer playing cards whose color matches the most cards in CPU hand (sets up future plays)
+  if(c.color !== 'wild'){
+    const colorCount = state.cpu.filter(h => h.color === c.color && h.id !== c.id).length;
+    base += colorCount * 0.5;
+  }
+
+  // If opponent has few cards, prioritize action cards aggressively
+  if(state.player.length <= 3){
+    if(c.value === '+2' || c.value === 'Wild +4') base += 3;
+    if(c.value === 'Skip' || c.value === 'Reverse') base += 2;
+  }
+
+  // Hold Wild +4 when CPU has many cards (save for emergencies)
+  if(c.value === 'Wild +4' && state.cpu.length > 4) base -= 3;
+
+  // Hold plain Wild when there are plenty of colored options
+  if(c.value === 'Wild' && state.cpu.length > 5) base -= 1;
+
+  return base;
+}
+
+async function cpuTurn(){
+  if(state.turn !== 'cpu' || state.gameOver || state.busy || state.paused) return;
+
+  try {
+    state.busy = true; render();
+    setBanner('Neon Bot is choosing a card…');
+    await sleep(650);
+
+    const options = state.cpu.filter(canPlay);
+
+    if(options.length){
+      options.sort((a,b) => scoreCard(b) - scoreCard(a));
+      const choice = options[0];
+      state.busy = false;
+      await playCard('cpu', choice.id);
+    } else {
+      const c = drawOne();
+      if(c){
+        state.cpu.push(c);
+        setBanner('Neon Bot drew a card…');
+        render();
+      }
+
+      if(c && canPlay(c)){
+        state.busy = false;
+        await sleep(250);
+        await playCard('cpu', c.id);
+      } else if(!c){
+        // Deck empty, CPU can't play → check stalemate
+        state.consecutivePasses++;
+        if(state.consecutivePasses >= 2){ state.busy = false; endRoundStalemate(); return; }
+        state.busy = false; state.turn = 'player';
+        setBanner('Neon Bot can\'t play or draw. Your turn!');
+        render();
+      } else {
+        // Drew a card but can't play it
+        state.busy = false; state.turn = 'player';
+        setBanner('Neon Bot drew a card. Your turn!');
+        render();
+      }
+    }
+  } catch(e){
+    console.error(e);
+    state.busy = false;
+    state.turn = 'player';
+    render();
+  }
+}
+
+// ── ROUND END ──────────────────────────────────────────
+function showResultStats(winner){
+  const stats = '📊 Wins: '+state.playerWins+' — Losses: '+state.cpuWins
+    + ' · Best streak: '+state.bestStreak+' 🔥'
+    + ' · Best score: '+state.bestScore;
+  $('resultStats').textContent = stats;
+}
+
+function endRound(winner){
+  state.gameOver = true; state.busy = false; state.drawnId = null;
+  $('unoBtn').classList.add('hidden');
+
+  if(winner === 'player'){
+    state.playerWins++; state.totalWins++;
+    state.streak++;
+    if(state.streak > state.bestStreak) state.bestStreak = state.streak;
+  } else {
+    state.cpuWins++;
+    state.streak = 0;
+  }
+
+  render(); saveProgress(); submitBestScore();
+  playSound(winner === 'player' ? 'win' : 'lose');
+
+  $('resultIcon').textContent = winner === 'player' ? '🏆' : '🤖';
+  $('messageTitle').textContent = winner === 'player' ? 'You win the round!' : 'Neon Bot wins!';
+
+  let msg = winner === 'player'
+    ? 'Great play! You emptied your hand first.'
+    : 'The bot emptied its hand first. Try a different strategy!';
+  if(winner === 'player' && state.streak > 1) msg += ' 🔥 Win streak: '+state.streak+'!';
+  $('messageText').textContent = msg;
+  showResultStats(winner);
+
+  $('nextRoundBtn').textContent = 'Play next round →';
+  $('messageModal').classList.remove('hidden');
+  setBanner(winner === 'player' ? 'Round complete — you won!' : 'Round complete — the bot won.');
+}
+
+// ── WILD COLOR CHOICE ──────────────────────────────────
+function chooseWildColor(color){
+  if(!state.pendingWild) return;
+  playSound('click');
+  state.activeColor = color;
+  const card = state.pendingWild;
+  state.pendingWild = null;
+  $('colorModal').classList.add('hidden');
+  state.busy = false;
+  render();
+  finishEffect(card, 'player');
+}
+
+// ── TUTORIAL ───────────────────────────────────────────
+const tutorialSteps = [
+  { icon:'🎯', title:'Match & Play',
+    text:'Play a card that matches the top card by <b>color</b> or <b>number</b>. Glowing cards are playable!<br><br>Can\'t play? Draw a card from the deck.' },
+  { icon:'⚡', title:'Special Cards',
+    text:'<b>Skip ⊘</b> and <b>Reverse ⇄</b> skip your opponent\'s turn.<br><b>Draw Two +2</b> forces them to draw 2 cards.<br><b>Wild ✦</b> lets you pick any color.<br><b>Wild +4</b> changes color AND forces 4 cards!' },
+  { icon:'🔔', title:'Call Last Card & Win!',
+    text:'When you have <b>1 card left</b>, press the <b>LAST CARD</b> button fast! Forget and you draw 2 penalty cards.<br><br>Empty your hand first to win the round. Build <b>win streaks 🔥</b> for the highest score!' }
+];
+let tutorialStep = 0;
+
+function showTutorial(){
+  tutorialStep = 0;
+  renderTutorialStep();
+  $('tutorialModal').classList.remove('hidden');
+}
+
+function renderTutorialStep(){
+  const s = tutorialSteps[tutorialStep];
+  $('tutorialIcon').textContent = s.icon;
+  $('tutorialTitle').textContent = s.title;
+  $('tutorialText').innerHTML = s.text;
+  $('tutorialDots').innerHTML = tutorialSteps.map((_,i) =>
+    '<span class="dot'+(i===tutorialStep?' active':'')+'"></span>'
+  ).join('');
+  $('tutorialPrev').style.visibility = tutorialStep === 0 ? 'hidden' : 'visible';
+  $('tutorialNext').textContent = tutorialStep === tutorialSteps.length - 1 ? 'Let\'s play! 🎮' : 'Next →';
+}
+
+function nextTutorialStep(){
+  playSound('click');
+  if(tutorialStep >= tutorialSteps.length - 1){
+    $('tutorialModal').classList.add('hidden');
+    state.tutorialSeen = true;
+    saveProgress();
+    return;
+  }
+  tutorialStep++;
+  renderTutorialStep();
+}
+
+function prevTutorialStep(){
+  if(tutorialStep <= 0) return;
+  playSound('click');
+  tutorialStep--;
+  renderTutorialStep();
+}
+
+// ── RESTART ────────────────────────────────────────────
+function restartAll(){
+  state.playerWins = 0; state.cpuWins = 0; state.round = 1; state.streak = 0;
+  saveProgress();
+  startRound();
+}
+
+// ── EVENT HANDLERS ─────────────────────────────────────
+// Initialize audio on first user interaction (browser autoplay policy)
+function ensureAudio(){ if(!audioCtx){ initAudio(); startBackgroundMusic(); } }
+document.addEventListener('click', ensureAudio, {once:true});
+document.addEventListener('touchstart', ensureAudio, {once:true});
+
+$('musicToggle').addEventListener('click', toggleMusic);
+
+$('drawBtn').addEventListener('click', drawForPlayer);
+$('deckBtn').addEventListener('click', drawForPlayer);
+$('passBtn').addEventListener('click', passTurn);
+$('unoBtn').addEventListener('click', () => { if(state.unoNeeded){ state.unoCalled = true; } });
+
+function askConfirm(text, cb){
+  confirmCb = cb; $('confirmText').textContent = text; $('confirmModal').classList.remove('hidden');
+}
+$('confirmYes').addEventListener('click', () => { $('confirmModal').classList.add('hidden'); const cb = confirmCb; confirmCb = null; if(cb) cb(); });
+$('confirmNo').addEventListener('click', () => { $('confirmModal').classList.add('hidden'); confirmCb = null; });
+
+function abandonRound(){
+  if(state.busy) return;
+  if(!state.gameOver){ state.cpuWins++; state.streak = 0; } // leaving a live round counts as a loss
+  state.round++; saveProgress(); startRound();
+}
+$('newRoundTop').addEventListener('click', () => {
+  if(state.paused || state.busy) return;
+  if(state.gameOver){ abandonRound(); return; }
+  askConfirm('Start a new round? Leaving this one counts as a loss and resets your streak.', abandonRound);
+});
+$('restartBtn').addEventListener('click', () => {
+  if(state.busy) return;
+  askConfirm('Restart the game and reset scores?', () => { if(!state.busy) restartAll(); });
+});
+
+$('colorModal').querySelectorAll('[data-color]').forEach(b =>
+  b.addEventListener('click', () => chooseWildColor(b.dataset.color))
+);
+$('cancelColor').addEventListener('click', () => {
+  $('colorModal').classList.add('hidden');
+  if(state.pendingWild){
+    state.activeColor = state.previousColor || 'red';
+    state.discard.pop();
+    state.player.push(state.pendingWild);
+    state.drawnId = state.pendingWildDrawn; // cancelling must not grant a free extra draw
+    state.pendingWild = null;
+    state.busy = false;
+    setBanner('Wild card cancelled. Your turn — play a matching card or draw.');
+    render();
+  }
+});
+
+$('nextRoundBtn').addEventListener('click', () => { state.round++; saveProgress(); $('messageModal').classList.add('hidden'); startRound(); });
+$('closeMessageBtn').addEventListener('click', () => $('messageModal').classList.add('hidden'));
+
+$('rulesBtn').addEventListener('click', () => $('rulesModal').classList.remove('hidden'));
+$('closeRulesBtn').addEventListener('click', () => $('rulesModal').classList.add('hidden'));
+$('tutorialBtn').addEventListener('click', showTutorial);
+$('tutorialNext').addEventListener('click', nextTutorialStep);
+$('tutorialPrev').addEventListener('click', prevTutorialStep);
+
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  // YouTube requires: do NOT call preventDefault() on Escape
+  if(!$('tutorialModal').classList.contains('hidden')){ state.tutorialSeen = true; saveProgress(); }
+  ['rulesModal','messageModal','tutorialModal'].forEach(id => $(id).classList.add('hidden'));
+  if(!$('confirmModal').classList.contains('hidden')) $('confirmNo').click();
+  if(!$('colorModal').classList.contains('hidden')) $('cancelColor').click();
+});
+
+// Resize / orientation change handler (debounced)
+let resizeTimer = null;
+function onResize(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { render(); }, 150);
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => {
+  // Delay to let browser finish rotating
+  setTimeout(() => { render(); }, 300);
+});
+
+// Prevent context menu on long-press (mobile)
+document.querySelector('.app').addEventListener('contextmenu', e => e.preventDefault());
+
+
+// ── BOOT ───────────────────────────────────────────────
+// Move focus into a modal when it opens and back to the opener when it closes
+document.querySelectorAll('.overlay').forEach(ov => {
+  let prev = null;
+  new MutationObserver(() => {
+    if(!ov.classList.contains('hidden')){ prev = document.activeElement; const b = ov.querySelector('button'); if(b) b.focus(); }
+    else if(prev){ try { prev.focus(); } catch(_){} prev = null; }
+  }).observe(ov, {attributes:true, attributeFilter:['class']});
+});
+
+async function boot(){
+  setupPlayableLifecycle();
+  await loadProgress();
+  startRound();
+  if(typeof ytgame !== 'undefined'){ try { ytgame.game.firstFrameReady(); } catch(_){} }
+
+  // Signal game ready to YouTube (must be within 5 seconds of page load)
+  if(typeof ytgame !== 'undefined'){ try { ytgame.game.gameReady(); } catch(_){} }
+
+  // Show tutorial for first-time players
+  if(!state.tutorialSeen) showTutorial();
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
